@@ -1,6 +1,6 @@
 import { Background, Controls, ReactFlow, type Edge, type Node } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { SamplePanel } from '@/components/panels'
+import { SamplePanel, SidePanel } from '@/components/panels'
 
 const nodes: Node[] = [
   { id: 'start', position: { x: 0, y: 0 }, data: { label: 'Start' }, type: 'input' },
@@ -13,11 +13,6 @@ const edges: Edge[] = [
   { id: 'print-end', source: 'print', target: 'end' },
 ]
 
-const panels = [
-  { id: 'panel-1', title: 'Panel 1', initialPosition: { x: 24, y: 24 } },
-  { id: 'panel-2', title: 'Panel 2', initialPosition: { x: 320, y: 24 } },
-]
-
 function App() {
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-background text-foreground">
@@ -28,9 +23,13 @@ function App() {
         </ReactFlow>
       </div>
       <div className="pointer-events-none absolute inset-0 z-10">
-        {panels.map((panel) => (
-          <SamplePanel key={panel.id} title={panel.title} initialPosition={panel.initialPosition} />
-        ))}
+        <SamplePanel initialPosition={{ x: 0, y: 0 }} title='Test' />
+        <SidePanel 
+          title="Side Panel" 
+          initialPosition={{ x: 24, y: 320 }}
+          initialSize={{ width: 300, height: 300, }}
+          isResizable={false}
+        />
       </div>
     </div>
   )

@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { BasePanel, type BasePanelProps } from "./base.panel";
+import { BasePanel, type BasePanelPropBase } from "./base.panel";
 import { Textarea } from "../ui/textarea";
 import { Input } from "../ui/input";
 import { Slider } from "../ui/slider";
 
-type SamplePanelProps = Omit<BasePanelProps, 'children'>;
+type SamplePanelProps = Omit<BasePanelPropBase, 'children'>;
 
 export function SamplePanel({ initialPosition, title }: Readonly<SamplePanelProps>) {
   const [name, setName] = useState('');
