@@ -13,14 +13,14 @@ One page: canvas in the center, side panels around it. Implementation is split b
 | Path | Contents |
 |---|---|
 | `components/panels/*.tsx` | Side panels (node palette, properties, variables, output/console, run controls) |
-| `components/charts/*.tsx` | One file per node type: its React Flow component, plus its parsing and execution |
+| `components/nodes/*.tsx` | One file per node type: its React Flow component |
 | `components/custom/*.tsx` | Reusable app-level UI, wrappers around Shadcn |
 | `components/ui/*.tsx` | Shadcn generated. Do not edit |
 | `lib/*.ts` | All non-UI code (no JSX): types, interpreter, serialization, validation |
 
 ## Core model
 - A flowchart is plain serializable data: `{ version, nodes, edges }`. Node `data` holds only JSON-safe values, never functions or class instances.
-- Node types are a discriminated union on `type`. Adding a node type means: add it to the union, add its `components/charts/` file, register it in the node-type map. The compiler (exhaustive `switch`) points to what is missing.
+- Node types are a discriminated union on `type`. Adding a node type means: add it to the union, add its `components/nodes/` file, register it in the node-type map. The compiler (exhaustive `switch`) points to what is missing.
 - The exported JSON is the same shape as the in-memory model, plus a `version` field for future migration.
 
 ## Execution
