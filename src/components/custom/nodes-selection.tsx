@@ -14,7 +14,7 @@ const FIXED_NODE_TYPES = new Set(["start", "end"]);
 export function NodeSelection({ onSelect }: Readonly<NodeSelectionProps>) {
   return (
     <div className="flex flex-col gap-2">
-      {nodeCatalog.filter(e => !FIXED_NODE_TYPES.has(e.type)).map(({ type, title, description, color }) => {
+      {nodeCatalog.filter(e => !FIXED_NODE_TYPES.has(e.type)).map(({ type, title, color }) => {
         const palette = nodePalettes[color]
 
         return (
@@ -45,7 +45,6 @@ export function NodeSelection({ onSelect }: Readonly<NodeSelectionProps>) {
             <GripVertical className="size-4 opacity-50" />
             <span className="flex flex-col text-left">
               <span className="text-sm font-medium">{title}</span>
-              <span className="text-xs opacity-70">{description}</span>
             </span>
           </div>
         )

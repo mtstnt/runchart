@@ -7,6 +7,10 @@ export type BaseNodeProp = {
   title: string
   inputCount?: number
   outputCount?: number
+  /** Explicit output handle ids, for nodes with several outputs (e.g. true/false). */
+  outputIds?: string[]
+  /** Labels shown inside the node next to each output handle. */
+  outputLabels?: string[]
   /** Hue name from `nodePalettes`, e.g. "purple". */
   baseColor?: BaseNodeColor
   /** Hue for the border and header divider. Defaults to `baseColor`. */
@@ -18,6 +22,8 @@ export function BaseNode({
   title,
   inputCount = 1,
   outputCount = 1,
+  outputIds,
+  outputLabels,
   baseColor = 'yellow',
   borderColor = baseColor,
   className,
@@ -33,7 +39,7 @@ export function BaseNode({
         {title}
       </div>
       <div className="flex flex-col gap-1 px-3 py-2">{children}</div>
-      <NodeHandles type="source" count={outputCount} className={palette.handle} />
+      <NodeHandles type="source" count={outputCount} ids={outputIds} labels={outputLabels} className={palette.handle} />
     </div>
   )
 }

@@ -13,8 +13,6 @@ import { Button } from './components/ui/button'
 
 const initialNodes: Node[] = [
   { id: 'start', type: 'start', position: { x: 0, y: 0 }, data: { label: 'Start' }, draggable: true },
-  { id: 'count', type: 'variable', position: { x: 200, y: 0 }, data: { name: 'count', variable: { type: 'integer', value: 1 } } },
-  { id: 'print', type: 'print', position: { x: 420, y: 0 }, data: { expression: 'print("Hello, world!")' } },
 ]
 
 // Purple, the node accent color. Defined once so initial, new and connection-line edges match.
@@ -25,11 +23,6 @@ const stepEdge: DefaultEdgeOptions = {
   style: { stroke: EDGE_COLOR, strokeWidth: 3 },
   markerEnd: { type: MarkerType.Arrow, color: EDGE_COLOR, width: 14, height: 14, strokeWidth: 1.5 },
 }
-
-const initialEdges: Edge[] = [
-  { id: 'start-count', source: 'start', target: 'count', ...stepEdge },
-  { id: 'count-print', source: 'count', target: 'print', ...stepEdge },
-]
 
 const fitViewOptions: FitViewOptions = {
   maxZoom: 1,
@@ -42,10 +35,11 @@ function FlowEditor() {
   const rf = useReactFlow();
 
   const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
+  const [edges, setEdges] = useState<Edge[]>([]);
 
   const [modalPosition, setModalPosition] = useState<XYPosition>({ x: 0, y: 0 });
   const [currentSourceNode, setCurrentSourceNode] = useState<Node | null>(null);
+  const [currentSourceHandle, setCurrentSourceHandle] = useState<string | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
 
   const onNodesChange = useCallback((changes: NodeChange<Node>[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)), []);
@@ -63,6 +57,7 @@ function FlowEditor() {
       setEdges((edgeSnapshot) => addEdge({
         id: `${currentSourceNode.id}-${targetNode.id}`,
         source: currentSourceNode.id,
+        sourceHandle: currentSourceHandle ?? undefined,
         target: targetNode.id,
         ...stepEdge,
       }, edgeSnapshot.filter((edge) => edge.id !== ghostEdgeId)))
@@ -87,21 +82,27 @@ function FlowEditor() {
     setNodes((nodesSnapshot) => nodesSnapshot.filter((node) => node.id !== ghostNodeId));
     setEdges((edgesSnapshot) => edgesSnapshot.filter((edge) => edge.id !== ghostEdgeId));
     setSelectedEdge(null);
-    setCurrentSourceNode(null)
+    setCurrentSourceNode(null);
+    setCurrentSourceHandle(null);
   }
 
   function onConnectEnd(_event: MouseEvent | TouchEvent, state: FinalConnectionState) {
     // Only offer a new node when the connection was dropped on empty canvas.
     if (state.toNode || !state.pointer) return;
-    
+
     const sourceNode = state.fromNode;
     if (!sourceNode) return;
-    
+    const sourceHandle = state.fromHandle?.id ?? null;
+
+    // Each output handle can leave its node only once, so a branch can use true and false.
+    if (edges.some((edge) => edge.source === sourceNode.id && (edge.sourceHandle ?? null) === sourceHandle)) return;
+
     const position = rf.screenToFlowPosition(state.pointer);
     setModalPosition(state.pointer);
     setSelectedEdge(null);
     setCurrentSourceNode(sourceNode);
-    
+    setCurrentSourceHandle(sourceHandle);
+
     setNodes((nodesSnapshot) => [
       ...nodesSnapshot.filter((node) => node.id !== ghostNodeId),
       {
@@ -117,12 +118,13 @@ function FlowEditor() {
         },
       },
     ]);
-    
+
     setEdges((edgesSnapshot) => [
       ...edgesSnapshot.filter((edge) => edge.id !== ghostEdgeId),
       {
         id: ghostEdgeId,
         source: sourceNode.id,
+        sourceHandle: sourceHandle ?? undefined,
         target: ghostNodeId,
         selectable: false,
         ...stepEdge,
@@ -131,7 +133,9 @@ function FlowEditor() {
   }
 
   function isValidConnection(edge: Edge | Connection) {
-    return edges.find(e => e.target == edge.target || e.source == edge.source) === undefined;
+    const sameTarget = edges.some((e) => e.target === edge.target && (e.targetHandle ?? null) === (edge.targetHandle ?? null));
+    const sameSource = edges.some((e) => e.source === edge.source && (e.sourceHandle ?? null) === (edge.sourceHandle ?? null));
+    return !sameTarget && !sameSource;
   }
 
   function onEdgeClick(event: React.MouseEvent, edge: Edge) {
@@ -174,8 +178,7 @@ function FlowEditor() {
           isResizable={false}
           dock="left"
         >
-          <NodeSelection onSelect={(type) =>
-            addNodeFromPalette(type, { x: window.innerWidth / 2, y: window.innerHeight / 2 })} />
+          <NodeSelection onSelect={(type) => addNodeFromPalette(type, { x: window.innerWidth / 2, y: window.innerHeight / 2 })} />
         </BasePanel>
 
         <BasePanel
@@ -187,6 +190,7 @@ function FlowEditor() {
         >
         </BasePanel>
       </div>
+      
       {(currentSourceNode !== null || selectedEdge !== null) && (
         <div className="pointer-events-none absolute inset-0 z-20">
           <div
@@ -218,6 +222,7 @@ function FlowEditor() {
           </div>
         </div>
       )}
+      
     </div>
   )
 }
