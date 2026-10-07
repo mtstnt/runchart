@@ -63,7 +63,7 @@ export function createChartNode(type: ChartNodeType, position: XYPosition): Char
     case 'variable':
       return { id, type, position, data: { name: 'x', variable: { type: 'integer', value: 0 } } }
     case 'print':
-      return { id, type, position, data: { expression: 'print("Hello, world!")' } }
+      return { id, type, position, data: { expression: '"Hello, world!"' } }
     case 'assignment':
       return { id, type, position, data: { name: 'x', expression: '0' } }
     case 'if':

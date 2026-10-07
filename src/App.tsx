@@ -2,9 +2,12 @@ import { addEdge, applyEdgeChanges, applyNodeChanges, Background, BackgroundVari
 import '@xyflow/react/dist/style.css'
 import { NodeSelection } from '@/components/custom/nodes-selection'
 import { RunControls } from '@/components/custom/run-controls'
+import { RunOutput } from '@/components/custom/run-output'
 import { chartNodeTypes } from '@/components/nodes/node-types'
 import { NODE_DRAG_TYPE } from '@/components/nodes/node-catalog'
 import { createChartNode, isChartNodeType, type ChartNodeType } from '@/lib/nodes'
+import { runChart, type RunResult } from '@/lib/run'
+import { parseVariableValue, type VariableType } from '@/lib/variables'
 import { cn } from '@/lib/utils'
 import { Trash2 } from 'lucide-react'
 import React, { useCallback, useState, type DragEvent } from 'react'
@@ -41,6 +44,7 @@ function FlowEditor() {
   const [currentSourceNode, setCurrentSourceNode] = useState<Node | null>(null);
   const [currentSourceHandle, setCurrentSourceHandle] = useState<string | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
+  const [runResult, setRunResult] = useState<RunResult | null>(null);
 
   const onNodesChange = useCallback((changes: NodeChange<Node>[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)), []);
   const onEdgesChange = useCallback((changes: EdgeChange<Edge>[]) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)), []);
@@ -144,6 +148,16 @@ function FlowEditor() {
     setSelectedEdge(edge);
   }
 
+  function askInput(name: string, type: VariableType) {
+    const raw = window.prompt(`Enter a value for "${name}" (${type})`);
+    if (raw === null) return undefined;
+    return parseVariableValue(type, raw)?.value;
+  }
+
+  function handleRun() {
+    setRunResult(runChart(nodes, edges, { ask: askInput }));
+  }
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-background text-foreground">
       <div className="absolute inset-0" onDragOver={handleDragOver} onDrop={handleDrop}>
@@ -166,7 +180,7 @@ function FlowEditor() {
           <Background variant={BackgroundVariant.Cross} />
           <Controls />
           <Panel position="top-center">
-            <RunControls />
+            <RunControls onRun={handleRun} />
           </Panel>
         </ReactFlow>
       </div>
@@ -188,6 +202,7 @@ function FlowEditor() {
           isResizable={false}
           dock="right"
         >
+          <RunOutput result={runResult} />
         </BasePanel>
       </div>
       
